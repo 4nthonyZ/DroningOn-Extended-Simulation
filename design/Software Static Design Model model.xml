@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<staticDesignModel>
+  <classes>
+    <!-- Simulation 类 -->
+    <class name="Simulation">
+      <attributes>
+        <attribute name="logger" type="Logger" scope="static"/>
+        <attribute name="entities" type="List&lt;Tickable&gt;" scope="static"/>
+        <attribute name="waitingToArrive" type="Map&lt;Integer, List&lt;Parcel&gt;&gt;" scope="static"/>
+        <attribute name="time" type="int" scope="static"/>
+        <attribute name="endArrival" type="int" scope="private"/>
+        <attribute name="dispatchCentre" type="DispatchCentre" scope="private"/>
+        <attribute name="timeout" type="int" scope="static"/>
+        <attribute name="deliveredCount" type="int" scope="static"/>
+        <attribute name="deliveredTotalTime" type="int" scope="static"/>
+      </attributes>
+      <methods>
+        <method name="register" returnType="void" scope="static">
+          <parameter name="entity" type="Tickable"/>
+        </method>
+        <method name="deliver" returnType="void" scope="static">
+          <parameter name="parcel" type="Parcel"/>
+        </method>
+        <method name="step" returnType="void" scope="private"/>
+        <method name="run" returnType="void" scope="public"/>
+      </methods>
+      <interfaces>
+        <interface name="Tickable"/>
+      </interfaces>
+    </class>
+
+    <!-- Drone 类 -->
+    <class name="Drone">
+      <attributes>
+        <attribute name="id" type="String" scope="final"/>
+        <attribute name="dispatchCentre" type="DispatchCentre" scope="final"/>
+        <attribute name="suburb" type="Suburb" scope="final"/>
+        <attribute name="location" type="Location" scope="package"/>
+        <attribute name="parcel" type="Parcel" scope="package"/>
+        <attribute name="state" type="State" scope="package"/>
+        <attribute name="transDuration" type="int" scope="package"/>
+      </attributes>
+      <methods>
+        <method name="tick" returnType="void" scope="public"/>
+        <method name="dispatch" returnType="void" scope="package">
+          <parameter name="parcel" type="Parcel"/>
+        </method>
+        <method name="grantAccess" returnType="void" scope="package">
+          <parameter name="location" type="Location"/>
+        </method>
+      </methods>
+      <implements>
+        <interface name="Simulation.Tickable"/>
+      </implements>
+      <enums>
+        <enum name="State">
+          <value>WaitingForDispatch</value>
+          <value>TransitToSuburb</value>
+          <value>TransitToDelivery</value>
+          <value>Delivering</value>
+          <value>TransitToExit</value>
+          <value>TransitToCentre</value>
+          <value>Recharge</value>
+        </enum>
+      </enums>
+    </class>
+
+    <!-- DispatchCentre 类 -->
+    <class name="DispatchCentre">
+      <attributes>
+        <attribute name="numdrones" type="int" scope="final"/>
+        <attribute name="timeToSuburb" type="int" scope="public final"/>
+        <attribute name="weightThreshold" type="int" scope="public final"/>
+        <attribute name="waitingForDelivery" type="Queue&lt;Parcel&gt;" scope="final"/>
+        <attribute name="drones" type="Set&lt;Drone&gt;" scope="final"/>
+        <attribute name="requests" type="Map&lt;Location,List&lt;Drone&gt;&gt;" scope="final"/>
+      </attributes>
+      <methods>
+        <method name="requestDispatch" returnType="void" scope="public">
+          <parameter name="drone" type="Drone"/>
+        </method>
+        <method name="requestAccess" returnType="void" scope="void">
+          <parameter name="drone" type="Drone"/>
+          <parameter name="location" type="Location"/>
+        </method>
+        <method name="tick" returnType="void" scope="public"/>
+      </methods>
+      <implements>
+        <interface name="Simulation.Tickable"/>
+      </implements>
+    </class>
+
+    <!-- Location 类 -->
+    <class name="Location">
+      <attributes>
+        <attribute name="id" type="Id" scope="final"/>
+        <attribute name="roads" type="Map&lt;Suburb.Direction, Location&gt;" scope="final"/>
+        <attribute name="drone" type="Drone" scope="package"/>
+        <attribute name="delivering" type="boolean" scope="package"/>
+        <attribute name="observers" type="List&lt;Observer&gt;" scope="static final"/>
+      </attributes>
+      <methods>
+        <method name="getRoad" returnType="Location" scope="public">
+          <parameter name="direction" type="Suburb.Direction"/>
+        </method>
+        <method name="arriveDrone" returnType="void" scope="public">
+          <parameter name="drone" type="Drone"/>
+        </method>
+        <method name="departDrone" returnType="void" scope="public"/>
+        <method name="startDelivery" returnType="void" scope="public"/>
+        <method name="endDelivery" returnType="void" scope="public"/>
+      </methods>
+      <interfaces>
+        <interface name="Id"/>
+        <interface name="Observer"/>
+      </interfaces>
+      <enums>
+        <enum name="DroneEvent">
+          <value>arrive</value>
+          <value>startDelivery</value>
+          <value>endDelivery</value>
+          <value>depart</value>
+        </enum>
+      </enums>
+    </class>
+
+    <!-- Suburb 类 -->
+    <class name="Suburb">
+      <attributes>
+        <attribute name="streets" type="Location[]" scope="package"/>
+        <attribute name="outAvenue" type="Location" scope="package"/>
+        <attribute name="backAvenue" type="Location" scope="package"/>
+        <attribute name="NUMSTREETS" type="int" scope="final public"/>
+        <attribute name="NUMHOUSES" type="int" scope="final public"/>
+      </attributes>
+      <methods>
+        <method name="getEntry" returnType="Location" scope="package"/>
+        <method name="getExit" returnType="Location" scope="package"/>
+      </methods>
+      <innerClasses>
+        <class name="StreetId">
+          <implements>
+            <interface name="Location.Id"/>
+          </implements>
+        </class>
+        <class name="AvenueId">
+          <implements>
+            <interface name="Location.Id"/>
+          </implements>
+        </class>
+      </innerClasses>
+      <enums>
+        <enum name="Direction">
+          <value>NORTH</value>
+          <value>SOUTH</value>
+          <value>EAST</value>
+          <value>WEST</value>
+        </enum>
+        <enum name="StreetName">
+          <value>First</value>
+          <value>Second</value>
+          <value>Third</value>
+          <value>Fourth</value>
+          <value>Fifth</value>
+          <value>Sixth</value>
+          <value>Seventh</value>
+          <value>Eighth</value>
+          <value>Ninth</value>
+          <value>Tenth</value>
+        </enum>
+        <enum name="Avenue">
+          <value>Out</value>
+          <value>Back</value>
+        </enum>
+      </enums>
+    </class>
+
+    <!-- Parcel 类 -->
+    <class name="Parcel">
+      <attributes>
+        <attribute name="street" type="int" scope="final"/>
+        <attribute name="house" type="int" scope="final"/>
+        <attribute name="arrival" type="int" scope="final"/>
+        <attribute name="weight" type="int" scope="final"/>
+        <attribute name="isFragile" type="boolean" scope="final"/>
+      </attributes>
+      <methods>
+        <method name="myStreet" returnType="int" scope="int"/>
+        <method name="myHouse" returnType="int" scope="int"/>
+        <method name="myWeight" returnType="int" scope="int"/>
+        <method name="isFragile" returnType="boolean" scope="boolean"/>
+      </methods>
+      <implements>
+        <interface name="Comparable&lt;Parcel&gt;"/>
+      </implements>
+    </class>
+
+    <!-- 关键关系 -->
+    <relationships>
+      <relationship type="aggregation" from="Simulation" to="DispatchCentre"/>
+      <relationship type="association" from="Drone" to="DispatchCentre"/>
+      <relationship type="association" from="Drone" to="Suburb"/>
+      <relationship type="association" from="Drone" to="Location"/>
+      <relationship type="association" from="Drone" to="Parcel"/>
+      <relationship type="aggregation" from="DispatchCentre" to="Drone"/>
+      <relationship type="association" from="DispatchCentre" to="Suburb"/>
+      <relationship type="association" from="Location" to="Drone"/>
+      <relationship type="association" from="Suburb" to="Location"/>
+    </relationships>
+  </classes>
+</staticDesignModel>
